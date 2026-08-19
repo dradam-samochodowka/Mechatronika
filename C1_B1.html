@@ -164,6 +164,23 @@ pre.kod .luka{background:rgba(255,154,31,.2);border-bottom:2px solid var(--bursz
 .fragment-podpowiedz{margin:0 14px 14px;font-size:15px;color:var(--tekst-cichy);
   border-left:2px solid var(--bursztyn);padding-left:10px}
 
+/* ---- podgląd pełnego programu bazowego ---- */
+.program-przyciski{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.program-przyciski button,.program-przyciski a{font-family:var(--body);font-size:14px;
+  font-weight:600;padding:8px 15px;border-radius:4px;border:1px solid var(--linia);
+  background:var(--panel-2);color:var(--tekst);cursor:pointer;text-decoration:none;
+  display:inline-block}
+.program-przyciski button:hover,.program-przyciski a:hover{border-color:var(--bursztyn)}
+.program-przyciski button.zrobione{border-color:var(--zielony);color:var(--zielony)}
+.podglad-kodu{margin-top:12px}
+.podglad-kodu.schowany{display:none}
+pre.kod-pelny{margin:0;padding:14px 15px;background:var(--tlo);
+  border:1px solid var(--linia);border-radius:5px;max-height:65vh;overflow:auto;
+  font-family:var(--mono);font-size:14px;line-height:1.6;white-space:pre;color:var(--tekst)}
+pre.kod-pelny .kom{color:var(--zielony)}
+.blad-kodu{padding:14px;border:1px dashed var(--czerwony);border-radius:5px;
+  color:var(--tekst-cichy);font-size:14px}
+
 figure.schemat{margin:14px 0;background:var(--panel-2);border:1px solid var(--linia);
   border-radius:6px;padding:10px}
 figure.schemat img{width:100%;display:block;border-radius:4px;background:#fff}
@@ -309,7 +326,13 @@ button.akcja:focus-visible{outline:2px solid #fff;outline-offset:2px}
 
   <div class="blok">
     <h3>Program bazowy tego projektu</h3>
-    <p style="margin:0;font-size:14px;color:var(--tekst-cichy)">W tym projekcie wgrywasz <b>jeden</b> program: <code>P01_bazowy.ino</code>. W kolejnych etapach nie dostajesz nowych plików — dopisujesz do niego fragmenty kodu z tej instrukcji. Każdy fragment ma podane miejsce, w które trafia.</p>
+    <p style="margin:0;font-size:15px;color:var(--tekst-cichy)">W tym projekcie wgrywasz <b>jeden</b> program: <code>P01_bazowy.ino</code>. W kolejnych etapach nie dostajesz nowych plików — dopisujesz do niego fragmenty kodu z tej instrukcji. Każdy fragment ma podane miejsce, w które trafia.</p>
+    <div class="program-przyciski">
+      <button type="button" class="pokaz-kod" data-plik="kody/P01_bazowy.ino">Pokaż cały program</button>
+      <a href="kody/P01_bazowy.ino" download>Pobierz plik</a>
+      <button type="button" class="kopiuj-program" style="display:none">Kopiuj cały program</button>
+    </div>
+    <div class="podglad-kodu schowany"></div>
   </div>
 
   <div class="wskazowka">
@@ -798,7 +821,13 @@ void pokaz(byte wzorzec) {
 
   <div class="blok">
     <h3>Program bazowy tego projektu</h3>
-    <p style="margin:0;font-size:14px;color:var(--tekst-cichy)">W tym projekcie wgrywasz <b>jeden</b> program: <code>P02_bazowy.ino</code>. W kolejnych etapach nie dostajesz nowych plików — dopisujesz do niego fragmenty kodu z tej instrukcji. Każdy fragment ma podane miejsce, w które trafia.</p>
+    <p style="margin:0;font-size:15px;color:var(--tekst-cichy)">W tym projekcie wgrywasz <b>jeden</b> program: <code>P02_bazowy.ino</code>. W kolejnych etapach nie dostajesz nowych plików — dopisujesz do niego fragmenty kodu z tej instrukcji. Każdy fragment ma podane miejsce, w które trafia.</p>
+    <div class="program-przyciski">
+      <button type="button" class="pokaz-kod" data-plik="kody/P02_bazowy.ino">Pokaż cały program</button>
+      <a href="kody/P02_bazowy.ino" download>Pobierz plik</a>
+      <button type="button" class="kopiuj-program" style="display:none">Kopiuj cały program</button>
+    </div>
+    <div class="podglad-kodu schowany"></div>
   </div>
 
   <div class="wskazowka">
@@ -1532,6 +1561,87 @@ void loop() {
   etapy.forEach(function(e,i){
     var cb = e.querySelector('[data-gotowy]');
     if (cb) cb.addEventListener('change', function(){ odswiezPostep(i); oznaczBrudny(); zaplanujZapis(); });
+  });
+
+  /* ---------- podgląd pełnego programu bazowego ---------- */
+  function kolorujProgram(kod){
+    return kod.split('\n').map(function(linia){
+      var e = linia.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      var obciety = linia.replace(/^\s+/, '');
+      if (obciety.indexOf('/*') === 0 || obciety.indexOf('*') === 0 ||
+          obciety.indexOf('//') === 0) {
+        return '<span class="kom">' + e + '</span>';
+      }
+      var i = e.indexOf('//');
+      if (i >= 0) return e.slice(0, i) + '<span class="kom">' + e.slice(i) + '</span>';
+      return e;
+    }).join('\n');
+  }
+
+  document.addEventListener('click', function(e){
+    var btn = e.target;
+    if (!btn.classList) return;
+
+    /* --- pokaż / ukryj kod --- */
+    if (btn.classList.contains('pokaz-kod')) {
+      var blok = btn.parentElement.parentElement;
+      var box = blok.querySelector('.podglad-kodu');
+      var plik = btn.getAttribute('data-plik');
+      if (!box) return;
+
+      if (box.getAttribute('data-wczytany') === '1') {
+        box.classList.toggle('schowany');
+        btn.textContent = box.classList.contains('schowany')
+          ? 'Pokaż cały program' : 'Ukryj program';
+        return;
+      }
+
+      btn.textContent = 'Wczytywanie…';
+      fetch(plik).then(function(r){
+        if (!r.ok) throw new Error(r.status);
+        return r.text();
+      }).then(function(tekst){
+        var pre = document.createElement('pre');
+        pre.className = 'kod-pelny';
+        pre.innerHTML = kolorujProgram(tekst);
+        box.innerHTML = '';
+        box.appendChild(pre);
+        box.setAttribute('data-wczytany', '1');
+        box.classList.remove('schowany');
+        btn.textContent = 'Ukryj program';
+        var kop = blok.querySelector('.kopiuj-program');
+        if (kop) kop.style.display = 'inline-block';
+      }).catch(function(){
+        box.innerHTML = '<div class="blad-kodu">Nie udało się wczytać pliku <b>' +
+          plik + '</b>.<br>Jeśli otwierasz instrukcję bezpośrednio z dysku, ' +
+          'podgląd nie zadziała — użyj przycisku pobierania albo otwórz ' +
+          'instrukcję przez adres internetowy.</div>';
+        box.setAttribute('data-wczytany', '1');
+        box.classList.remove('schowany');
+        btn.textContent = 'Ukryj komunikat';
+      });
+      return;
+    }
+
+    /* --- kopiuj cały program --- */
+    if (btn.classList.contains('kopiuj-program')) {
+      var blok2 = btn.parentElement.parentElement;
+      var pre2 = blok2.querySelector('pre.kod-pelny');
+      if (!pre2) return;
+      var kod2 = pre2.textContent;
+      function udalo2(){
+        btn.textContent = 'skopiowano';
+        btn.classList.add('zrobione');
+        setTimeout(function(){
+          btn.textContent = 'Kopiuj cały program';
+          btn.classList.remove('zrobione');
+        }, 1800);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(kod2).then(udalo2, function(){});
+      }
+      return;
+    }
   });
 
   /* ---------- kopiowanie fragmentów kodu ---------- */
